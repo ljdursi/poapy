@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-from builtins import zip
-from builtins import str
-from builtins import object
+try:
+    from builtins import zip
+    from builtins import str
+    from builtins import object
+except ImportError:
+    pass
 import numpy
 import seqgraphalignment
 import textwrap

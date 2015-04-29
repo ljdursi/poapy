@@ -1,6 +1,9 @@
 from __future__ import print_function
-from builtins import zip
-from builtins import str
+try:
+    from builtins import zip
+    from builtins import str
+except ImportError:
+    pass
 
 def readfasta(infile):
     labels = []

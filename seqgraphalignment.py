@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from builtins import range
-from builtins import object
+try:
+    from builtins import range
+    from builtins import object
+except ImportError:
+    pass
 import poagraph
 import numpy
 import collections
@@ -156,7 +159,6 @@ class SeqGraphAlignment(object):
                 backStrIdx [i+1,:] = numpy.where(scores[i+1,:] > 0, backStrIdx[i+1,:],  -1)
                 scores[i+1,:]      = numpy.maximum(scores[i+1,:], 0)
 
-        print(scores)
         return self.backtrack(scores, backStrIdx, backGrphIdx, nodeIndexToID)
 
     def prevIndices(self, node, nodeIDtoIndex):
@@ -192,14 +194,16 @@ class SeqGraphAlignment(object):
 
         # initialize score
         if self.globalAlign:
-            scores[0,:] = numpy.arange(0,l2+1)*self.__extendgapscore
+            scores[0,1:] = self.__opengapscore + numpy.arange(0,l2)*self.__extendgapscore
             ni = self.graph.nodeiterator()
             for (index, node) in enumerate(ni()):
                 prevIdxs = self.prevIndices(node, nodeIDtoIndex)
-                best = 0 if len(prevIdxs) == 0 else scores[prevIdxs[0]+1,0]
+                scores[0,0] = self.__opengapscore - self.__extendgapscore
+                best = scores[prevIdxs[0]+1,0]
                 for prevIdx in prevIdxs:
                     best = max(best, scores[prevIdx+1,0])
                 scores[index+1,0] = best + self.__extendgapscore
+                scores[0,0] = 0
 
         # backtracking matrices
         backStrIdx = numpy.zeros((l1+1,l2+1),dtype=numpy.int)
