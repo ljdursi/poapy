@@ -1,7 +1,7 @@
+#!/usr/bin/env python
 from builtins import zip
 from builtins import str
 from builtins import object
-#!/usr/bin/env python
 import numpy
 import seqgraphalignment
 import textwrap
