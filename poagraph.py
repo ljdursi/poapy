@@ -327,7 +327,7 @@ class POAGraph(object):
         path   = []
         bases  = []
         labels = []
-        while pos > -1:
+        while pos is not None and pos > -1:
             path.append(pos)
             bases.append(self.nodedict[pos].base)
             labels.append(self.nodedict[pos].labels)

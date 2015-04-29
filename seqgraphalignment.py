@@ -156,7 +156,6 @@ class SeqGraphAlignment(object):
                 backStrIdx [i+1,:] = numpy.where(scores[i+1,:] > 0, backStrIdx[i+1,:],  -1)
                 scores[i+1,:]      = numpy.maximum(scores[i+1,:], 0)
 
-        print(scores)
         return self.backtrack(scores, backStrIdx, backGrphIdx, nodeIndexToID)
 
     def prevIndices(self, node, nodeIDtoIndex):
