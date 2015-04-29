@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import range
+from builtins import object
 #!/usr/bin/env python
 import poagraph
 import numpy
@@ -135,7 +138,7 @@ class SeqGraphAlignment(object):
 
             inserted[:] = False
             insscores = scores[i+1,:] + insertCost[i+1,:]
-            for j in xrange(l2):
+            for j in range(l2):
                 if insscores[j] > scores[i+1,j+1]:
                     scores[i+1,j+1] = insscores[j]
                     backStrIdx[i+1,j+1] = j
@@ -153,13 +156,14 @@ class SeqGraphAlignment(object):
                 backStrIdx [i+1,:] = numpy.where(scores[i+1,:] > 0, backStrIdx[i+1,:],  -1)
                 scores[i+1,:]      = numpy.maximum(scores[i+1,:], 0)
 
+        print(scores)
         return self.backtrack(scores, backStrIdx, backGrphIdx, nodeIndexToID)
 
     def prevIndices(self, node, nodeIDtoIndex):
         """Return a list of the previous dynamic programming table indices 
            corresponding to predecessors of the current node."""
         prev = []
-        for predID in node.inEdges.keys():
+        for predID in list(node.inEdges.keys()):
             prev.append(nodeIDtoIndex[predID])
         # if no predecessors, point to just before the graph
         if len(prev) == 0:

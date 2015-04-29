@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import zip
+from builtins import str
 def readfasta(infile):
     labels = []
     sequences = []
@@ -22,7 +25,7 @@ def readfasta(infile):
             cursequence += line.strip()
 
     updatelists()
-    return zip(labels, sequences)
+    return list(zip(labels, sequences))
 
 
 if __name__ == "__main__":
@@ -34,4 +37,4 @@ if __name__ == "__main__":
 
     results = readfasta(args.infile)
     for result in results:
-        print result
+        print(result)

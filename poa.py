@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import argparse
 import sys
 import numpy
@@ -22,7 +23,7 @@ if __name__ == "__main__":
 
     alignments = graph.generateAlignmentStrings()
     for label,alignstring in alignments:
-        print "{0:15s} {1:s}".format(label, alignstring)
+        print("{0:15s} {1:s}".format(label, alignstring))
 
     if args.html is not None:
         graph.htmlOutput(args.html)

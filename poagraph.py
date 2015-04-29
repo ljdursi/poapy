@@ -1,3 +1,6 @@
+from builtins import zip
+from builtins import str
+from builtins import object
 #!/usr/bin/env python
 import numpy
 import seqgraphalignment
@@ -54,9 +57,9 @@ class Node(object):
     def labels(self):
         """Returns all the labels associated with an in-edge or an out edge."""
         labelset = set([])
-        for e in self.inEdges.values():
+        for e in list(self.inEdges.values()):
             labelset = labelset.union(e.labels)
-        for e in self.outEdges.values():
+        for e in list(self.outEdges.values()):
             labelset = labelset.union(e.labels)
         return list(labelset)
 
@@ -363,7 +366,7 @@ class POAGraph(object):
             lastlen = len(path)
             passno += 1
 
-        return zip(allpaths, allbases, alllabels)
+        return list(zip(allpaths, allbases, alllabels))
 
     def generateAlignmentStrings(self):
         # assign node IDs to columns in the output
@@ -406,7 +409,7 @@ class POAGraph(object):
                 charlist[ columnIndex[path] ] = base
             alignstrings.append( "".join(charlist) )
 
-        return zip(seqnames, alignstrings)
+        return list(zip(seqnames, alignstrings))
 
 
     def jsOutput(self):
