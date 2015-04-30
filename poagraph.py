@@ -177,39 +177,40 @@ class POAGraph(object):
     def toposort(self):
         """Sorts node list so that all incoming edges come from nodes earlier in the list."""
         sortedlist = []
-        nodestouse = []
-        usededges  = {}
+        visiting = {}
+        completed = {}
+        cycleFound = False
 
-        def remainingInEdges(m):
-            remaining = 0
-            for inedge in self.nodedict[m].inEdges:
-                if not (inedge,m) in usededges:
-                    remaining += 1
-            return remaining
+        # depth first search
+        def visit(nodeID):
+            if nodeID in visiting:
+                cycleFound = True
+                return
 
-        # find all nodes with no incoming edges
-        for nodeIdx in self.nodedict:
-            if self.nodedict[nodeIdx].inDegree == 0:
-                nodestouse.append(nodeIdx)
+            if nodeID in completed:
+                return
 
-        # take nodes with no still-active incoming edges,
-        # remove outgoing edges from nodes,
-        # take any new nodes with no incoming edges
-        while len(nodestouse) > 0:
-            n = nodestouse.pop(0)
-            sortedlist.append(n)
-            for m in self.nodedict[n].outEdges:
-                if (n,m) in usededges:
-                    continue                       
-                usededges[(n,m)] = 1
-                if remainingInEdges(m) == 0:
-                    nodestouse.append(m)
-                
-        assert len(usededges) == self._nedges
+            visiting[nodeID] = 1
+            for successor in self.nodedict[nodeID].outEdges.keys():
+               visit(successor) 
+
+            completed[nodeID] = 1
+            visiting.pop(nodeID)
+            sortedlist.insert(0, nodeID)
+
+        while len(sortedlist) < self.nNodes:
+            found = None
+            for node in self.nodedict:
+                if not node in completed:
+                    found = node
+                    break
+            assert found is not None
+            visit(found)
+
+        assert not cycleFound
         self.nodeidlist = sortedlist
         self._needsSort = False
         return
-            
 
     def nodeiterator(self):
         self.cursor = 0
