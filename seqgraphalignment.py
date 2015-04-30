@@ -24,7 +24,7 @@ class SeqGraphAlignment(object):
         if fastMethod:
             matches = self.alignStringToGraphFast(*args, **kwargs)
         else:
-            matches = self.alignStringToGraphClear(*args, **kwargs)
+            matches = self.alignStringToGraphSimple(*args, **kwargs)
         self.stringidxs, self.nodeidxs = matches
 
     def alignmentStrings(self):
@@ -41,7 +41,7 @@ class SeqGraphAlignment(object):
         res = numpy.where(v == c, self.__matchscore, self.__mismatchscore)
         return res
    
-    def alignStringToGraphClear(self):
+    def alignStringToGraphSimple(self):
         """Align string to graph, following same approach as smith waterman
         example"""
         if not type(self.sequence) == str:
@@ -103,6 +103,19 @@ class SeqGraphAlignment(object):
         deleteCost = numpy.zeros((l1+1,l2+1),dtype=numpy.int)+self.__opengapscore
 
         inserted   = numpy.zeros((l2+1),dtype=numpy.bool)
+        insscores  = numpy.zeros((l2+2))
+
+        # having the inner loop as a function improves performance
+        # can use Cython, etc on this for significant further improvements
+        def insertions(inserted, insscores, l2, scores, insertCost, backStrIdx):
+            inserted[:] = False
+            insscores[0:-1] = scores + insertCost
+            for j in range(l2):
+                if insscores[j] > scores[j+1]:
+                    scores[j+1] = insscores[j]
+                    backStrIdx[j+1] = j
+                    inserted[j+1] = True
+                    insscores[j+1] = scores[j+1] + insertCost[j+1]
 
         # Dynamic Programming
         ni = self.graph.nodeiterator()
@@ -132,21 +145,14 @@ class SeqGraphAlignment(object):
 
             # choose best options available of match, delete
             deleted       = deletescore > matchscore
-            bestmatchdel  = numpy.where  (deleted, bestdelete, bestmatch)
 
             scores     [i+1,1:] = numpy.maximum(deletescore, matchscore)
-            backGrphIdx[i+1,1:] = bestmatchdel
+            backGrphIdx[i+1,1:] = numpy.where(deleted, bestdelete, bestmatch)
             backStrIdx [i+1,1:] = numpy.where(deleted, numpy.arange(1,l2+1), numpy.arange(0,l2))
             deleteCost [i+1,1:] = numpy.where(deleted, self.__extendgapscore, deleteCost[i+1,1:])
 
-            inserted[:] = False
-            insscores = scores[i+1,:] + insertCost[i+1,:]
-            for j in range(l2):
-                if insscores[j] > scores[i+1,j+1]:
-                    scores[i+1,j+1] = insscores[j]
-                    backStrIdx[i+1,j+1] = j
-                    inserted[j+1] = True
-                    insscores[j+1] = scores[i+1,j+1] + insertCost[i+1,j+1]
+            # call insertions as a function for better performance
+            insertions(inserted, insscores, l2, scores[i+1,:], insertCost[i+1,:], backStrIdx[i+1,:])
 
             insertCost[i+1,inserted] = self.__extendgapscore
             deleteCost[i+1,inserted] = self.__opengapscore
