@@ -177,26 +177,26 @@ class POAGraph(object):
     def toposort(self):
         """Sorts node list so that all incoming edges come from nodes earlier in the list."""
         sortedlist = []
-        visiting = {}
-        completed = {}
-        cycleFound = False
+        completed = set()
 
-        # depth first search
-        def visit(nodeID):
-            if nodeID in visiting:
-                cycleFound = True
-                return
+        def dfs(start, completed, sortedlist):
+            stack, started = [start], set()
+            while stack:
+                nodeID = stack.pop()
 
-            if nodeID in completed:
-                return
+                if nodeID in completed:
+                    continue
 
-            visiting[nodeID] = 1
-            for successor in self.nodedict[nodeID].outEdges.keys():
-               visit(successor) 
+                if nodeID in started:
+                    completed.add(nodeID)
+                    sortedlist.insert(0, nodeID)
+                    started.remove(nodeID)
+                    continue
 
-            completed[nodeID] = 1
-            visiting.pop(nodeID)
-            sortedlist.insert(0, nodeID)
+                successors = [s for s in self.nodedict[nodeID].outEdges.keys() if not s in completed]
+                started.add(nodeID)
+                stack.append(nodeID)
+                stack.extend(successors)
 
         while len(sortedlist) < self.nNodes:
             found = None
@@ -205,9 +205,8 @@ class POAGraph(object):
                     found = node
                     break
             assert found is not None
-            visit(found)
+            dfs(found, completed, sortedlist)
 
-        assert not cycleFound
         self.nodeidlist = sortedlist
         self._needsSort = False
         return
