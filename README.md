@@ -7,7 +7,7 @@ based on
  and
 [Generating consensus sequences from partial order ...](http://bioinformatics.oxfordjournals.org/content/19/8/999.short) (2003) by Lee
 
-for education/demonstration purposes.
+for education/demonstration purposes. A short description of the method can be found on [this article](http://simpsonlab.github.io/2015/05/01/understanding-poa/) on the SimpsonLab group blog.
 
 Some examples are provided; they are run as
 
