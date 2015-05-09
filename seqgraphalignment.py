@@ -12,8 +12,8 @@ import collections
 class SeqGraphAlignment(object):
     __matchscore=4
     __mismatchscore=-2
-    __opengapscore=-12
-    __extendgapscore=-6
+    __opengapscore=-4
+    __extendgapscore=-2
 
     def __init__(self, sequence, graph, fastMethod=True, globalAlign=False, *args, **kwargs):
         self.sequence   = sequence
