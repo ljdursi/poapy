@@ -113,6 +113,7 @@ class SeqGraphAlignment(object):
             for j in range(l2):
                 if insscores[j] > scores[j+1]:
                     scores[j+1] = insscores[j]
+                    insertCost[j+1] = self.__extendgapscore
                     backStrIdx[j+1] = j
                     inserted[j+1] = True
                     insscores[j+1] = scores[j+1] + insertCost[j+1]
@@ -226,6 +227,19 @@ class SeqGraphAlignment(object):
         bestj -= 1
         if not self.globalAlign:
             besti, bestj = numpy.argwhere(scores == numpy.amax(scores))[-1]
+        else:
+            # still have to find best final index to start from
+            terminalIndices = []
+            ni = self.graph.nodeiterator()
+            for (index,node) in enumerate(ni()):
+                if node.outDegree == 0:
+                    terminalIndices.append( index )
+            besti = terminalIndices[0]
+            bestscore = scores[besti, bestj]
+            for i in terminalIndices[1:]:
+                score = scores[i, bestj]
+                if score > bestscore:
+                    bestscore, besti = score, i
 
         matches = []
         strindexes = []
