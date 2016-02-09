@@ -13,7 +13,7 @@ import collections
 class Node(object):
     def __init__(self, nodeID=-1, base='N'):
         self.ID = nodeID
-        self.base   = base
+        self.base = base
         self.inEdges = {}
         self.outEdges = {}
         self.alignedTo = []
@@ -21,27 +21,25 @@ class Node(object):
     def __str__(self):
         return "(%d:%s)" % (self.ID, self.base)
 
-    def addInEdge(self, neighbourID, label):
+    def _add_edge(self, edgeset, neighbourID, label):
         if neighbourID is None:
             return
         # already present? just update labels
-        if neighbourID in self.inEdges:
-            self.inEdges[neighbourID].addLabel( label )
+        if neighbourID in edgeset:
+            edgeset[neighbourID].addLabel(label)
         else:
-            edge = Edge( neighbourID, self.ID, label )
-            self.inEdges[neighbourID] = edge
+            edge = Edge(neighbourID, self.ID, label)
+            edgeset[neighbourID] = edge
+
+    def addInEdge(self, neighbourID, label):
+        self._add_edge(self.inEdges, neighbourID, label)
 
     def addOutEdge(self, neighbourID, label):
-        if neighbourID is None:
-            return
-        # already present? just update labels
-        if neighbourID in self.outEdges:
-            self.outEdges[neighbourID].addLabel( label )
-        else:
-            edge = Edge( self.ID, neighbourID, label )
-            self.outEdges[neighbourID] = edge
+        self._add_edge(self.outEdges, neighbourID, label)
 
     def nextNode(self, label):
+        """Returns the first (presumably only) outward neighbour
+           having the given edge label"""
         nextID = None
         for e in self.outEdges:
             if label in self.outEdges[e].labels:
@@ -124,8 +122,8 @@ class POAGraph(object):
         self.nodeidlist = []   # allows a (partial) order to be imposed on the nodes
         self.__needsort = False
         self.__labels = []
-        self.__seqs   = []
-        self.__starts  = []
+        self.__seqs = []
+        self.__starts = []
 
         if seq is not None:
             self.addUnmatchedSeq(seq, label)
@@ -137,7 +135,7 @@ class POAGraph(object):
         self.nodeidlist.append(nid)
         self._nnodes += 1
         self._nextnodeID += 1
-        self._needsSort=True
+        self._needsSort = True
         return nid
 
     def addEdge(self, start, end, label):
@@ -209,10 +207,23 @@ class POAGraph(object):
 
         self.nodeidlist = sortedlist
         self._needsSort = False
+        #self.testsort()
+        return
+
+    def testsort(self):
+        """ Test the nodeidlist to make sure it is topologically sorted:
+            eg, all predecessors of a node preceed the node in the list"""
+        if self.nodeidlist is None:
+            return
+        seen_nodes = set()
+        for nodeidx in self.nodeidlist:
+            node = self.nodedict[nodeidx]
+            for in_neighbour in node.inEdges:
+                assert in_neighbour in seen_nodes
+            seen_nodes.add(nodeidx)
         return
 
     def nodeiterator(self):
-        self.cursor = 0
         if self.needsSort:
             self.toposort()
 
@@ -299,7 +310,6 @@ class POAGraph(object):
         self.__starts.append(firstID)
         return
 
-
     def consensus(self, excludeLabels=None):
         if excludeLabels is None:
             excludeLabels = []
@@ -372,45 +382,50 @@ class POAGraph(object):
         return list(zip(allpaths, allbases, alllabels))
 
     def generateAlignmentStrings(self):
-        # assign node IDs to columns in the output
-        columnIndex = {}
-        currentColumn = 0
+        """ Return a list of strings corresponding to the alignments in the graph """
+
+        # Step 1: assign node IDs to columns in the output
+        #  column_index[node.ID] is the position in the toposorted node list
+        #    of the node itself, or the earliest node it is aligned to.
+        column_index = {}
+        current_column = 0
 
         ni = self.nodeiterator()
         for node in ni():
-            foundIdx = None
-            for other in node.alignedTo:
-                if other in columnIndex:
-                    foundIdx = columnIndex[other]
+            other_columns = [column_index[other] for other in node.alignedTo
+                                                  if other in column_index]
+            if len(other_columns) > 0:
+                found_idx = min(other_columns)
+            else:
+                found_idx = current_column
+                current_column += 1
 
-            if foundIdx is None:
-                foundIdx = currentColumn
-                currentColumn += 1
+            column_index[node.ID] = found_idx
 
-            columnIndex[node.ID] = foundIdx
+        ncolumns = current_column
 
-        nColumns = currentColumn
-
+        # Step 2: given the column indexes, populate the strings
+        #   corresponding to the sequences inserted in the graph
         seqnames = []
         alignstrings = []
         for label, start in zip(self.__labels, self.__starts):
             seqnames.append(label)
-            curnodeID = start
-            charlist = ['-']*nColumns
-            while curnodeID is not None:
-                node = self.nodedict[curnodeID]
-                charlist[ columnIndex[curnodeID] ] = node.base
-                curnodeID = node.nextNode(label)
-            alignstrings.append( "".join(charlist) )
+            curnode_id = start
+            charlist = ['-']*ncolumns
+            while curnode_id is not None:
+                node = self.nodedict[curnode_id]
+                charlist[column_index[curnode_id]] = node.base
+                curnode_id = node.nextNode(label)
+            alignstrings.append("".join(charlist))
 
-        # now get the consenses
+        # Step 3: Same as step 2, but with consensus sequences
         consenses = self.allConsenses()
-        for i,consensus in enumerate(consenses):
-            seqnames.append('Consensus '+str(i))
-            charlist = ['-']*nColumns
-            for path,base in zip(consensus[0],consensus[1]):
-                charlist[ columnIndex[path] ] = base
-            alignstrings.append( "".join(charlist) )
+        for i, consensus in enumerate(consenses):
+            seqnames.append('Consensus'+str(i))
+            charlist = ['-']*ncolumns
+            for path, base in zip(consensus[0], consensus[1]):
+                charlist[column_index[path]] = base
+            alignstrings.append("".join(charlist))
 
         return list(zip(seqnames, alignstrings))
 

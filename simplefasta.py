@@ -31,6 +31,10 @@ def readfasta(infile):
     updatelists()
     return list(zip(labels, sequences))
 
+def writefasta(outfile,entries):
+    for label,seq in entries:
+        print(">"+label,file=outfile);
+        print(seq,file=outfile);
 
 if __name__ == "__main__":
     import argparse
