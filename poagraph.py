@@ -6,9 +6,9 @@ try:
 except ImportError:
     pass
 import numpy
-import seqgraphalignment
 import textwrap
 import collections
+
 
 class Node(object):
     def __init__(self, nodeID=-1, base='N'):
@@ -77,7 +77,7 @@ class Edge(object):
             self.labels = [label]
 
     def addLabel(self, newlabel):
-        if not newlabel in self.labels:
+        if newlabel not in self.labels:
             self.labels.append(newlabel)
         return
 
@@ -91,7 +91,7 @@ class Edge(object):
 
 class POAGraph(object):
     def addUnmatchedSeq(self, seq, label=None, updateSequences=True):
-        """Add a completely independant (sub)string to the graph, 
+        """Add a completely independant (sub)string to the graph,
            and return node index to initial and final node"""
         if seq is None:
             return
@@ -107,7 +107,7 @@ class POAGraph(object):
                 self.addEdge(lastID, nodeID, label)
             lastID = nodeID
 
-        self.__needsort = neededSort # no new order problems introduced
+        self.__needsort = neededSort  # no new order problems introduced
         if updateSequences:
             self.__seqs.append(seq)
             self.__labels.append(label)
@@ -142,15 +142,15 @@ class POAGraph(object):
         if start is None or end is None:
             return
 
-        if not start in self.nodedict:
+        if start not in self.nodedict:
             raise KeyError('addEdge: Start node not in graph: '+str(start))
-        if not end in self.nodedict:
+        if end not in self.nodedict:
             raise KeyError('addEdge: End node not in graph: '+str(end))
-        
+
         oldNodeEdges = self.nodedict[start].outDegree + self.nodedict[end].inDegree
 
-        self.nodedict[start].addOutEdge( end, label )
-        self.nodedict[end].addInEdge( start, label )
+        self.nodedict[start].addOutEdge(end, label)
+        self.nodedict[end].addInEdge(start, label)
 
         newNodeEdges = self.nodedict[start].outDegree + self.nodedict[end].inDegree
 
@@ -191,7 +191,7 @@ class POAGraph(object):
                     started.remove(nodeID)
                     continue
 
-                successors = [s for s in self.nodedict[nodeID].outEdges.keys() if not s in completed]
+                successors = [s for s in self.nodedict[nodeID].outEdges.keys() if s not in completed]
                 started.add(nodeID)
                 stack.append(nodeID)
                 stack.extend(successors)
@@ -199,7 +199,7 @@ class POAGraph(object):
         while len(sortedlist) < self.nNodes:
             found = None
             for node in self.nodedict:
-                if not node in completed:
+                if node not in completed:
                     found = node
                     break
             assert found is not None
@@ -207,7 +207,6 @@ class POAGraph(object):
 
         self.nodeidlist = sortedlist
         self._needsSort = False
-        #self.testsort()
         return
 
     def testsort(self):
@@ -241,7 +240,7 @@ class POAGraph(object):
             for outIdx in node.outEdges:
                 selfstr += "        " + node.outEdges[outIdx].__str__() + "\n"
         return selfstr
-    
+
     def incorporateSeqAlignment(self, alignment, seq, label=None):
         """Incorporate a SeqGraphAlignemnt into the graph."""
         newseq     = alignment.sequence
@@ -255,11 +254,11 @@ class POAGraph(object):
         # head, tail of sequence may be unaligned; just add those into the
         # graph directly
         validstringidxs = [si for si in stringidxs if si is not None]
-        startSeqIdx,endSeqIdx = validstringidxs[0], validstringidxs[-1]
+        startSeqIdx, endSeqIdx = validstringidxs[0], validstringidxs[-1]
         if startSeqIdx > 0:
             firstID, headID = self.addUnmatchedSeq(newseq[0:startSeqIdx], label, updateSequences=False)
         if endSeqIdx < len(newseq):
-            tailID, __ = self.addUnmatchedSeq(newseq[endSeqIdx+1:],  label, updateSequences=False)
+            tailID, __ = self.addUnmatchedSeq(newseq[endSeqIdx+1:], label, updateSequences=False)
 
         # now we march along the aligned part. For each base, we find or create
         # a node in the graph:
@@ -327,12 +326,12 @@ class POAGraph(object):
 
             for neighbourID in self.nodedict[nodeID].outEdges:
                 e = self.nodedict[nodeID].outEdges[neighbourID]
-                weight = len([ l for l in e.labels if l not in excludeLabels ])
+                weight = len([l for l in e.labels if l not in excludeLabels])
                 weightScoreEdge = (weight, scores[neighbourID], neighbourID)
 
                 if weightScoreEdge > bestWeightScoreEdge:
                     bestWeightScoreEdge = weightScoreEdge
-                
+
             scores[nodeID] = sum(bestWeightScoreEdge[0:2])
             nextInPath[nodeID] = bestWeightScoreEdge[2]
 
@@ -347,7 +346,6 @@ class POAGraph(object):
             pos = nextInPath[pos]
 
         return path, bases, labels
-
 
     def allConsenses(self, maxfraction=0.5):
         allpaths = []
@@ -392,8 +390,7 @@ class POAGraph(object):
 
         ni = self.nodeiterator()
         for node in ni():
-            other_columns = [column_index[other] for other in node.alignedTo
-                                                  if other in column_index]
+            other_columns = [column_index[other] for other in node.alignedTo if other in column_index]
             if len(other_columns) > 0:
                 found_idx = min(other_columns)
             else:
@@ -429,7 +426,6 @@ class POAGraph(object):
 
         return list(zip(seqnames, alignstrings))
 
-
     def jsOutput(self):
         """returns a list of strings containing a a description of the graph for viz.js, http://visjs.org"""
 
@@ -437,10 +433,10 @@ class POAGraph(object):
         # graph
         path, __, __ = self.consensus()
         pathdict = {}
-        for i,nodeID in enumerate(path):
+        for i, nodeID in enumerate(path):
             pathdict[nodeID] = i*150
 
-        lines = [ 'var nodes = [']
+        lines = ['var nodes = [']
 
         ni = self.nodeiterator()
         count = 0
@@ -450,15 +446,14 @@ class POAGraph(object):
                 line += ', allowedToMoveX: false, x: ' + str(pathdict[node.ID]) + ', y: 0 , allowedToMoveY: true },'
             else:
                 line += '},'
-            lines.append( line )
+            lines.append(line)
 
         lines[-1] = lines[-1][:-1]
-        lines.append( '];' )
+        lines.append('];')
 
-        lines.append( ' ' )
+        lines.append(' ')
 
-        lines.append( 'var edges = [' )
-        nlabels = len(self.__labels)
+        lines.append('var edges = [')
         ni = self.nodeiterator()
         for node in ni():
             nodeID = str(node.ID)
@@ -474,11 +469,11 @@ class POAGraph(object):
                 target = str(alignededge)
                 lines.append('    {from: '+nodeID+', to: '+target+', value: 1, style: "dash-line"},')
         lines[-1] = lines[-1][:-1]
-        lines.append( '];' )
+        lines.append('];')
         return lines
 
     def htmlOutput(self, outfile):
-        header="""
+        header = """
                   <!doctype html>
                   <html>
                   <head>
@@ -498,7 +493,7 @@ class POAGraph(object):
         lines = self.jsOutput() 
         for line in lines:
             outfile.write(line+'\n')
-        footer="""
+        footer = """
                   var container = document.getElementById('mynetwork');
                   var data= {
                     nodes: nodes,
