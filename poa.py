@@ -2,7 +2,6 @@
 from __future__ import print_function
 import argparse
 import sys
-import numpy
 import poagraph
 import seqgraphalignment
 import simplefasta
@@ -10,8 +9,8 @@ import simplefasta
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-    parser.add_argument('-g','--globalAlign', action='store_true', help='Global alignment, or (default) local alignment')
-    parser.add_argument('-H','--html', nargs='?', type=argparse.FileType('w'), default='poa.html', help='html output')
+    parser.add_argument('-g', '--globalAlign', action='store_true', help='Global alignment, or (default) local alignment')
+    parser.add_argument('-H', '--html', nargs='?', type=argparse.FileType('w'), default='poa.html', help='html output')
     args = parser.parse_args()
 
     seqNo = 0
@@ -22,7 +21,7 @@ if __name__ == "__main__":
         graph.incorporateSeqAlignment(alignment, sequence, label)
 
     alignments = graph.generateAlignmentStrings()
-    for label,alignstring in alignments:
+    for label, alignstring in alignments:
         print("{0:15s} {1:s}".format(label, alignstring))
 
     if args.html is not None:
