@@ -15,7 +15,13 @@ class SeqGraphAlignment(object):
     __opengapscore = -4
     __extendgapscore = -2
 
-    def __init__(self, sequence, graph, fastMethod=True, globalAlign=False, *args, **kwargs):
+    def __init__(self, sequence, graph, fastMethod=True, globalAlign=False,
+                 matchscore=__matchscore, mismatchscore=__mismatchscore,
+                 opengapscore=__opengapscore, extendgapscore=__extendgapscore, *args, **kwargs):
+        self.__mismatchscore = mismatchscore
+        self.__matchscore = matchscore
+        self.__opengapscore = opengapscore
+        self.__extendgapscore = extendgapscore
         self.sequence    = sequence
         self.graph       = graph
         self.stringidxs  = None
@@ -94,7 +100,7 @@ class SeqGraphAlignment(object):
             matches = match_scores[i+1, 1:] + self.__opengapscore + self.__extendgapscore
             dels = del_scores[i+1, 1:] + self.__opengapscore + self.__extendgapscore
             best = numpy.where(matches > dels, matches, dels)
-            for j in range(1, l2):
+            for j in range(1, l2+1):
                 ins = self.__extendgapscore + ins_scores[i, j-1]
                 ins_scores[i+1, j] = max(ins, best[j-1])
 
