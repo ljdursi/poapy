@@ -128,6 +128,9 @@ class POAGraph(object):
         if seq is not None:
             self.addUnmatchedSeq(seq, label)
 
+    def nodeIdxToBase(self, idx):
+        return self.nodedict[self.nodeidlist[idx]].base
+
     def addNode(self, base):
         nid = self._nextnodeID
         newnode = Node(nid, base)
@@ -242,7 +245,7 @@ class POAGraph(object):
         return selfstr
 
     def incorporateSeqAlignment(self, alignment, seq, label=None):
-        """Incorporate a SeqGraphAlignemnt into the graph."""
+        """Incorporate a SeqGraphAlignment into the graph."""
         newseq     = alignment.sequence
         stringidxs = alignment.stringidxs
         nodeidxs   = alignment.nodeidxs
