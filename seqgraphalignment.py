@@ -6,22 +6,21 @@ try:
 except ImportError:
     pass
 import numpy
-import collections
 
 
 class SeqGraphAlignment(object):
     __matchscore = 4
     __mismatchscore = -2
-    __opengapscore = -4
-    __extendgapscore = -2
+    __opengap = -4
+    __extendgap = -2
 
     def __init__(self, sequence, graph, fastMethod=True, globalAlign=False,
                  matchscore=__matchscore, mismatchscore=__mismatchscore,
-                 opengapscore=__opengapscore, extendgapscore=__extendgapscore, *args, **kwargs):
-        self.__mismatchscore = mismatchscore
-        self.__matchscore = matchscore
-        self.__opengapscore = opengapscore
-        self.__extendgapscore = extendgapscore
+                 opengapscore=__opengap, extendgapscore=__extendgap, *args, **kwargs):
+        self._mismatchscore = mismatchscore
+        self._matchscore = matchscore
+        self._opengap = opengapscore
+        self._extendgap = extendgapscore
         self.sequence    = sequence
         self.graph       = graph
         self.stringidxs  = None
@@ -39,12 +38,12 @@ class SeqGraphAlignment(object):
 
     def matchscore(self, c1, c2):
         if c1 == c2:
-            return self.__matchscore
+            return self._matchscore
         else:
-            return self.__mismatchscore
+            return self._mismatchscore
 
     def matchscoreVec(self, c, v):
-        res = numpy.where(v == c, self.__matchscore, self.__mismatchscore)
+        res = numpy.where(v == c, self._matchscore, self._mismatchscore)
         return res
 
     def alignStringToGraphSimple(self):
@@ -54,6 +53,7 @@ class SeqGraphAlignment(object):
             raise TypeError("Invalid Type")
 
         nodeIDtoIndex, nodeIndexToID, m_scores, ins_scores, del_scores, backStrIdx, backGrphIdx = self.initializeDynamicProgrammingData()
+        scores = numpy.maximum(numpy.maximum(m_scores, ins_scores), del_scores)
 
         # Dynamic Programming
         ni = self.graph.nodeiterator()
@@ -63,16 +63,21 @@ class SeqGraphAlignment(object):
             for j, sbase in enumerate(self.sequence):
                 # add all candidates to a list, pick the best
 
-                candidates = [(scores[i+1, j] + insertCost[(i+1, j)], i+1, j, "INS")]
+                candidates = [(m_scores[i+1, j] + self._opengap + self._extendgap, i+1, j, "INS")]
+                candidates += [(del_scores[i+1, j] + self._opengap + self._extendgap, i+1, j, "INS")]
+                candidates += [(ins_scores[i+1, j] + self._extendgap, i+1, j, "INS")]
+
                 for predIndex in self.prevIndices(node, nodeIDtoIndex):
-                    candidates.append((scores[predIndex+1, j] + self.matchscore(sbase, pbase), predIndex+1, j, "MATCH"))
-                    candidates.append((scores[predIndex+1, j+1] + deleteCost[(predIndex+1, j+1)], predIndex+1, j+1, "DEL"))
+                    candidates += [(m_scores[predIndex+1, j+1] + self._opengap + self._extendgap, predIndex+1, j+1, "DEL")]
+                    candidates += [(ins_scores[predIndex+1, j+1] + self._opengap + self._extendgap, predIndex+1, j+1, "DEL")]
+                    candidates += [(del_scores[predIndex+1, j+1] + self._extendgap, predIndex+1, j+1, "DEL")]
+                    for score_type in m_scores, ins_scores, del_scores:
+                        candidates += [(score_type[predIndex+1, j] + self.matchscore(sbase, pbase), predIndex+1, j, "MATCH")]
 
                 scores[i+1, j+1], backGrphIdx[i+1, j+1], backStrIdx[i+1, j+1], movetype = max(candidates)
-                if movetype == "INS":
-                    insertCost[(i+1, j+1)] = self.__extendgapscore
-                if movetype == "DEL":
-                    deleteCost[(i+1, j+1)] = self.__extendgapscore
+                ins_scores[i+1, j+1] = max([c for c, _, _, t in candidates if t == "INS"])
+                del_scores[i+1, j+1] = max([c for c, _, _, t in candidates if t == "DEL"])
+                m_scores[i+1, j+1] = max([c for c, _, _, t in candidates if t == "MATCH"])
 
                 if not self.globalAlign and scores[i+1, j+1] < 0:
                     scores[i+1, j+1] = 0.
@@ -97,17 +102,17 @@ class SeqGraphAlignment(object):
         # having the inner loop as a function improves performance
         # can use Cython, etc on this for significant further improvements
         def insertions(i, l2, match_scores, ins_scores, del_scores):
-            matches = match_scores[i+1, 1:] + self.__opengapscore + self.__extendgapscore
-            dels = del_scores[i+1, 1:] + self.__opengapscore + self.__extendgapscore
+            matches = match_scores[i+1, 1:] + self._opengap + self._extendgap
+            dels = del_scores[i+1, 1:] + self._opengap + self._extendgap
             best = numpy.where(matches > dels, matches, dels)
             for j in range(1, l2+1):
-                ins = self.__extendgapscore + ins_scores[i, j-1]
+                ins = self._extendgap + ins_scores[i, j-1]
                 ins_scores[i+1, j] = max(ins, best[j-1])
 
         def deletions(p, l2, m_scores, ins_scores, del_scores):
-            del_match = m_scores[p + 1, 1:] + self.__opengapscore + self.__extendgapscore
-            del_ins = ins_scores[p + 1, 1:] + self.__opengapscore + self.__extendgapscore
-            del_del = del_scores[p + 1, 1:] + self.__extendgapscore
+            del_match = m_scores[p + 1, 1:] + self._opengap + self._extendgap
+            del_ins = ins_scores[p + 1, 1:] + self._opengap + self._extendgap
+            del_del = del_scores[p + 1, 1:] + self._extendgap
             return numpy.maximum(numpy.maximum(del_match, del_ins), del_del)
 
         def matches(p, l2, m_scores, ins_scores, del_scores, matchpoints):
@@ -220,15 +225,15 @@ class SeqGraphAlignment(object):
         # if global align, penalty for starting at head != 0
         if self.globalAlign:
             ni = self.graph.nodeiterator()
-            ins_scores[0, 0] = self.__opengapscore - self.__extendgapscore
+            ins_scores[0, 0] = self._opengap - self._extendgap
             for (index, node) in enumerate(ni()):
                 prevIdxs = self.prevIndices(node, nodeIDtoIndex)
                 best = ins_scores[prevIdxs[0]+1, 0]
                 for prevIdx in prevIdxs:
                     best = max(best, del_scores[prevIdx+1, 0])
-                ins_scores[index+1, 0] = best + self.__extendgapscore
+                ins_scores[index+1, 0] = best + self._extendgap
             ins_scores[0, 0] = 0
-            del_scores[1:l1+1, 0] = self.__opengapscore + numpy.arange(l1)*self.__extendgapscore
+            del_scores[1:l1+1, 0] = self._opengap + numpy.arange(l1)*self._extendgap
 
         # backtracking matrices
         backStrIdx = numpy.zeros((l1+1, l2+1), dtype=numpy.int)
