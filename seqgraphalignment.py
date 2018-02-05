@@ -102,12 +102,12 @@ class SeqGraphAlignment(object):
         # having the inner loop as a function improves performance
         # can use Cython, etc on this for significant further improvements
         def insertions(i, l2, match_scores, ins_scores, del_scores):
-            matches = match_scores[i+1, 1:] + self._opengap + self._extendgap
-            dels = del_scores[i+1, 1:] + self._opengap + self._extendgap
+            matches = match_scores[i+1, :-1] + self._opengap + self._extendgap
+            dels = del_scores[i+1, :-1] + self._opengap + self._extendgap
             best = numpy.where(matches > dels, matches, dels)
-            for j in range(1, l2+1):
-                ins = self._extendgap + ins_scores[i, j-1]
-                ins_scores[i+1, j] = max(ins, best[j-1])
+            for j in range(l2):
+                ins = ins_scores[i+1, j] + self._extendgap
+                ins_scores[i+1, j+1] = max(ins, best[j])
 
         def deletions(p, l2, m_scores, ins_scores, del_scores):
             del_match = m_scores[p + 1, 1:] + self._opengap + self._extendgap
@@ -153,19 +153,17 @@ class SeqGraphAlignment(object):
             m_scores[i+1, 1:] = matchscore
 
             # choose best options available of match, delete
-            deleted       = deletescore > matchscore
+            deleted       = deletescore >= matchscore
             backGrphIdx[i+1, 1:] = numpy.where(deleted, bestdelete, bestmatch)
             backStrIdx [i+1, 1:] = numpy.where(deleted, numpy.arange(1, l2+1), numpy.arange(0, l2))
 
             # insertions: updated in place, don't depend on predecessors
             insertions(i, l2, m_scores, ins_scores, del_scores)
             best = numpy.maximum(deletescore, matchscore)
-            inserted = ins_scores[i+1, 1:] > best
+            inserted = ins_scores[i+1, 1:] >= best
 
-            backGrphIdx[i+1, 1:] = numpy.where(inserted, numpy.arange(l2), backGrphIdx[i+1, 1:])
-            for j, ins in enumerate(inserted):
-                if ins:
-                    backStrIdx[i+1, j+1] = j
+            backGrphIdx[i+1, 1:] = numpy.where(inserted, i+1, backGrphIdx[i+1, 1:])
+            backStrIdx[i+1, 1:] = numpy.where(inserted, numpy.arange(l2), backStrIdx[i+1, 1:])
 
             scores[i+1, 1:] = numpy.maximum(numpy.maximum(ins_scores[i+1, 1:], deletescore), matchscore)
 
@@ -225,15 +223,16 @@ class SeqGraphAlignment(object):
         # if global align, penalty for starting at head != 0
         if self.globalAlign:
             ni = self.graph.nodeiterator()
-            ins_scores[0, 0] = self._opengap - self._extendgap
+            ins_scores[0, 0] = self._opengap
             for (index, node) in enumerate(ni()):
                 prevIdxs = self.prevIndices(node, nodeIDtoIndex)
                 best = ins_scores[prevIdxs[0]+1, 0]
                 for prevIdx in prevIdxs:
                     best = max(best, del_scores[prevIdx+1, 0])
                 ins_scores[index+1, 0] = best + self._extendgap
+            del_scores[0, 0:l2+1] = self._opengap + numpy.arange(l2+1)*self._extendgap
             ins_scores[0, 0] = 0
-            del_scores[1:l1+1, 0] = self._opengap + numpy.arange(l1)*self._extendgap
+            del_scores[0, 0] = 0
 
         # backtracking matrices
         backStrIdx = numpy.zeros((l1+1, l2+1), dtype=numpy.int)
