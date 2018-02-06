@@ -9,12 +9,11 @@ import simplefasta
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-    parser.add_argument('-g', '--globalAlign', action='store_true', help='Global alignment, or (default) local alignment')
-    parser.add_argument('-O', '--gapopen', type=int, default=-2, help='Gap opening score')
-    parser.add_argument('-E', '--gapextend', type=int, default=-1, help='Gap extension score')
+    parser.add_argument('-G', '--gap', type=int, default=-2, help='Gap penalty, default=-1')
+    parser.add_argument('-g', '--globalAlign', action='store_true', help='Global alignment (default: local)')
     parser.add_argument('-s', '--simple', action='store_true', help='Simple method')
-    parser.add_argument('-m', '--match', type=int, default=2, help='Match score')
-    parser.add_argument('-M', '--mismatch', type=int, default=-2, help='Mismatch score')
+    parser.add_argument('-m', '--match', type=int, default=1, help='Match score, default=+1')
+    parser.add_argument('-M', '--mismatch', type=int, default=-1, help='Mismatch score, default=-1')
     parser.add_argument('-H', '--html', nargs='?', type=argparse.FileType('w'), default='poa.html', help='html output')
     args = parser.parse_args()
 
@@ -25,7 +24,7 @@ if __name__ == "__main__":
         alignment = seqgraphalignment.SeqGraphAlignment(sequence, graph, fastMethod=not args.simple,
                                                         globalAlign=args.globalAlign,
                                                         matchscore=args.match, mismatchscore=args.mismatch,
-                                                        opengapscore=args.gapopen, extendgapscore=args.gapextend)
+                                                        gapscore=args.gap)
         graph.incorporateSeqAlignment(alignment, sequence, label)
 
     alignments = graph.generateAlignmentStrings()
