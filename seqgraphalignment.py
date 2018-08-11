@@ -212,12 +212,12 @@ class SeqGraphAlignment(object):
             for (index, node) in enumerate(ni()):
                 if node.outDegree == 0:
                     terminalIndices.append(index)
-            besti = terminalIndices[0]
+            besti = terminalIndices[0] + 1
             bestscore = scores[besti, bestj]
             for i in terminalIndices[1:]:
-                score = scores[i, bestj]
+                score = scores[i+1, bestj]
                 if score > bestscore:
-                    bestscore, besti = score, i
+                    bestscore, besti = score, i+1
 
         matches = []
         strindexes = []
