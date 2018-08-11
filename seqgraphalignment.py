@@ -205,6 +205,8 @@ class SeqGraphAlignment(object):
         bestj -= 1
         if not self.globalAlign:
             besti, bestj = numpy.argwhere(scores == numpy.amax(scores))[-1]
+            besti
+            bestj
         else:
             # still have to find best final index to start from
             terminalIndices = []
@@ -212,12 +214,12 @@ class SeqGraphAlignment(object):
             for (index, node) in enumerate(ni()):
                 if node.outDegree == 0:
                     terminalIndices.append(index)
-            besti = terminalIndices[0]
+            besti = terminalIndices[0] + 1
             bestscore = scores[besti, bestj]
             for i in terminalIndices[1:]:
-                score = scores[i, bestj]
+                score = scores[i+1, bestj]
                 if score > bestscore:
-                    bestscore, besti = score, i
+                    bestscore, besti = score, i+1
 
         matches = []
         strindexes = []
