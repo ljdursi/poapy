@@ -205,8 +205,6 @@ class SeqGraphAlignment(object):
         bestj -= 1
         if not self.globalAlign:
             besti, bestj = numpy.argwhere(scores == numpy.amax(scores))[-1]
-            besti
-            bestj
         else:
             # still have to find best final index to start from
             terminalIndices = []
