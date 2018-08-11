@@ -1,5 +1,7 @@
 # A Simple Partial Order Alignment implementation
 
+[![Build Status](https://travis-ci.org/ljdursi/poapy.svg?branch=master)](https://travis-ci.org/ljdursi/poapy)
+
 This is a simple python implementation of a Partial Order Alignment for MSA,
 based on
 
@@ -37,7 +39,6 @@ seq21           ---------------------------CTGATGTACTTG--TTGTGA-GGGCAA
 seq22           ---AGTTCCTGCTGCG--TTTGCTGGACTGATGTACTTGT-TTGTGA-GG-CAA
 seq23           -G----TTCTGCCTGCG-TTTGCTGAACTGATGTACTTGT-TAGT-A-AG-CAA
 seq24           C---GTTACTGC-GGG-GTTTGCTGGACTCATG-ACTTTTGTNGTAG--G-CAA
-
 Consensus0      --AAGTTCCTGCTGCG--TTTGCTGGACTGATGTACTTGT-TTGTGA-GG-CAA
 ```
 
