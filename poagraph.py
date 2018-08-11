@@ -493,7 +493,7 @@ class POAGraph(object):
                     // create a network
                   """
         outfile.write(textwrap.dedent(header[1:]))
-        lines = self.jsOutput() 
+        lines = self.jsOutput()
         for line in lines:
             outfile.write(line+'\n')
         footer = """
