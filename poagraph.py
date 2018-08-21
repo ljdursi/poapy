@@ -194,9 +194,9 @@ class POAGraph(object):
                     started.remove(nodeID)
                     continue
 
-                successors = [s for s in self.nodedict[nodeID].outEdges.keys()]
-                successors += [s for s in self.nodedict[nodeID].alignedTo]
-                successors = list(set(successors) - completed)
+                successors = [s for s in self.nodedict[nodeID].outEdges.keys() if s not in completed]
+                successors += [s for s in self.nodedict[nodeID].alignedTo if s not in completed]
+                successors = list(set(successors))
                 started.add(nodeID)
                 stack.append(nodeID)
                 stack.extend(successors)
