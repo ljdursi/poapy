@@ -194,7 +194,9 @@ class POAGraph(object):
                     started.remove(nodeID)
                     continue
 
-                successors = [s for s in self.nodedict[nodeID].outEdges.keys() if s not in completed]
+                successors = [s for s in self.nodedict[nodeID].outEdges.keys()]
+                successors += [s for s in self.nodedict[nodeID].alignedTo]
+                successors = list(set(successors) - completed)
                 started.add(nodeID)
                 stack.append(nodeID)
                 stack.extend(successors)
@@ -391,6 +393,7 @@ class POAGraph(object):
         column_index = {}
         current_column = 0
 
+        # go through nodes in toposort order
         ni = self.nodeiterator()
         for node in ni():
             other_columns = [column_index[other] for other in node.alignedTo if other in column_index]
