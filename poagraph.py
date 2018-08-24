@@ -248,15 +248,16 @@ class POAGraph(object):
                 stack.append(pnodeID)
                 stack.extend(successors)
 
-        while len(sortedlist) < len(pseudonodes):
+        while len(sortedlist) < self.nNodes:
             found = None
             for pnid in range(len(pseudonodes)):
-                if pnid not in completed:
+                if pnid not in completed and len(pseudonodes[pnid].predecessors) == 0:
                     found = pnid
                     break
             assert found is not None
             dfs(found, completed, sortedlist)
 
+        assert len(sortedlist) == self.nNodes
         self.nodeidlist = sortedlist
         self._needsSort = False
         return
