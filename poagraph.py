@@ -175,37 +175,84 @@ class POAGraph(object):
     def nEdges(self):
         return self._nedges
 
+    def _simplified_graph_rep(self):
+        ## TODO: The need for this suggests that the way the graph is currently represented
+        ## isn't really right and needs some rethinking.
+
+        node_to_pn = {}
+        pn_to_nodes = {}
+
+        # Find the mappings from nodes to pseudonodes
+        cur_pnid = 0
+        for _, node in self.nodedict.items():
+            if node.ID not in node_to_pn:
+                node_ids = [node.ID] + node.alignedTo
+                pn_to_nodes[cur_pnid] = node_ids
+                for nid in node_ids:
+                    node_to_pn[nid] = cur_pnid
+                cur_pnid += 1
+
+        # create the pseudonodes
+        Pseudonode = collections.namedtuple("Pseudonode", ["pnode_id", "predecessors", "successors", "node_ids"])
+        pseudonodes = []
+
+        for pnid in range(cur_pnid):
+            nids, preds, succs = pn_to_nodes[pnid], [], []
+            for nid in nids:
+                node = self.nodedict[nid]
+                preds += [node_to_pn[inEdge.outNodeID] for _, inEdge in node.inEdges.items()]
+                succs += [node_to_pn[outEdge.inNodeID] for _, outEdge in node.outEdges.items()]
+
+            pn = Pseudonode(pnode_id=pnid, predecessors=preds, successors=succs, node_ids=nids)
+            pseudonodes.append(pn)
+
+        return pseudonodes
+
     def toposort(self):
         """Sorts node list so that all incoming edges come from nodes earlier in the list."""
         sortedlist = []
-        completed = set()
+        completed = set([])
 
-        def dfs(start, completed, sortedlist):
+        ##
+        ## The topological sort of this graph is complicated by the alignedTo edges;
+        ## we want to nodes connected by such edges to remain near each other in the
+        ## topological sort.
+        ##
+        ## Here we'll create a simple version of the graph that merges nodes that
+        ## are alignedTo each other, performs the sort, and then decomposes the
+        ## 'pseudonodes'.
+        ##
+        ## The need for this suggests that the way the graph is currently represented
+        ## isn't quite right and needs some rethinking.
+        ##
+
+        pseudonodes = self._simplified_graph_rep()
+
+        def dfs(start, complete, sortedlist):
             stack, started = [start], set()
             while stack:
-                nodeID = stack.pop()
+                pnodeID = stack.pop()
 
-                if nodeID in completed:
+                if pnodeID in complete:
                     continue
 
-                if nodeID in started:
-                    completed.add(nodeID)
-                    sortedlist.insert(0, nodeID)
-                    started.remove(nodeID)
+                if pnodeID in started:
+                    complete.add(pnodeID)
+                    for nid in pseudonodes[pnodeID].node_ids:
+                        sortedlist.insert(0, nid)
+                    started.remove(pnodeID)
                     continue
 
-                successors = [s for s in self.nodedict[nodeID].outEdges.keys() if s not in completed]
-                successors += [s for s in self.nodedict[nodeID].alignedTo if s not in completed]
-                successors = list(set(successors))
-                started.add(nodeID)
-                stack.append(nodeID)
+                successors = pseudonodes[pnodeID].successors
+                started.add(pnodeID)
+                stack.append(pnodeID)
                 stack.extend(successors)
 
-        while len(sortedlist) < self.nNodes:
+        while len(sortedlist) < len(pseudonodes):
             found = None
-            for node in self.nodedict:
-                if node not in completed:
-                    found = node
+            for pnid in range(len(pseudonodes)):
+                if pnid not in completed:
+                    found = pnid
                     break
             assert found is not None
             dfs(found, completed, sortedlist)
