@@ -30,6 +30,22 @@ def generate_poa_graph(sequences):
     return graph
 
 
+def sequences_and_test(sequences, test_sequence):
+    graph = generate_poa_graph(sequences)
+    alignment = seqgraphalignment.SeqGraphAlignment(test_sequence, graph,
+                                                    fastMethod=False,
+                                                    globalAlign=True,
+                                                    matchscore=1,
+                                                    mismatchscore=-1,
+                                                    gapscore=-2)
+
+    graph.incorporateSeqAlignment(alignment, test_sequence, "test")
+    alignments = graph.generateAlignmentStrings()
+
+    result = alignments[-2][1].replace("-","")
+    return graph, result
+
+
 def test_order_of_alignment_case1():
     sequences = ['ATATTGTGTAAGGCACAATTAACA',
                  'ATATTGCAAGGCACAATTCAACA',
@@ -37,18 +53,7 @@ def test_order_of_alignment_case1():
                  'ATGTGCAAGAGCACATAACA']
     test_sequence = "ATATTGCAAGGCACACTAACA"
 
-    graph = generate_poa_graph(sequences)
-    alignment = seqgraphalignment.SeqGraphAlignment(test_sequence, graph,
-                                                    fastMethod=False,
-                                                    globalAlign=True,
-                                                    matchscore=1,
-                                                    mismatchscore=-1,
-                                                    gapscore=-2)
-
-    graph.incorporateSeqAlignment(alignment, test_sequence, "test")
-    alignments = graph.generateAlignmentStrings()
-
-    result = alignments[-2][1].replace("-","")
+    _, result = sequences_and_test(sequences, test_sequence)
     assert result == test_sequence
 
 
@@ -56,15 +61,21 @@ def test_order_of_alignment_case2():
     sequences = ["TTA", "TGC"]
     test_sequence = "TTGC"
 
-    graph = generate_poa_graph(sequences)
-    alignment = seqgraphalignment.SeqGraphAlignment(test_sequence, graph,
-                                                    fastMethod=False,
-                                                    globalAlign=True,
-                                                    matchscore=1,
-                                                    mismatchscore=-1,
-                                                    gapscore=-2)
+    _, result = sequences_and_test(sequences, test_sequence)
+    assert result == test_sequence
 
-    graph.incorporateSeqAlignment(alignment, test_sequence, "test")
-    alignments = graph.generateAlignmentStrings()
-    result = alignments[-2][1].replace("-","")
+
+def test_order_of_alignment_case3():
+    sequences = ["TAGTGAAAGAGGAAAAGAA"]
+    test_sequence = "GCCCAGAAATTCCAGACCAGC"
+
+    _, result = sequences_and_test(sequences, test_sequence)
+    assert result == test_sequence
+
+
+def test_order_of_alignment_case4():
+    sequences = ["CTACTTGGGAGGCTGAGGTGG", "CCACTTGAGTTGAGG", "CTACTTGGGAAGCTAGAGGTGG"]
+    test_sequence = "CTACTTGGGAGGCTGAGGTGG"
+
+    _, result = sequences_and_test(sequences, test_sequence)
     assert result == test_sequence
