@@ -5,6 +5,7 @@ import pytest
 import poagraph
 import seqgraphalignment
 
+
 def generate_poa_graph(sequences):
     """
     Initialize graph and align all sequences
@@ -42,7 +43,7 @@ def sequences_and_test(sequences, test_sequence):
     graph.incorporateSeqAlignment(alignment, test_sequence, "test")
     alignments = graph.generateAlignmentStrings()
 
-    result = alignments[-2][1].replace("-","")
+    result = alignments[-2][1].replace("-", "")
     return graph, result
 
 
