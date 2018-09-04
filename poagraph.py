@@ -21,21 +21,25 @@ class Node(object):
     def __str__(self):
         return "(%d:%s)" % (self.ID, self.base)
 
-    def _add_edge(self, edgeset, neighbourID, label):
+    def _add_edge(self, edgeset, neighbourID, label, from_neighbour):
         if neighbourID is None:
             return
         # already present? just update labels
+        # otherwise create appropriately-ordered edge and proceed
         if neighbourID in edgeset:
             edgeset[neighbourID].addLabel(label)
         else:
-            edge = Edge(neighbourID, self.ID, label)
+            if from_neighbour:
+                edge = Edge(outNodeID=neighbourID, inNodeID=self.ID, label=label)
+            else:
+                edge = Edge(outNodeID=self.ID, inNodeID=neighbourID, label=label)
             edgeset[neighbourID] = edge
 
     def addInEdge(self, neighbourID, label):
-        self._add_edge(self.inEdges, neighbourID, label)
+        self._add_edge(self.inEdges, neighbourID, label, from_neighbour=True)
 
     def addOutEdge(self, neighbourID, label):
-        self._add_edge(self.outEdges, neighbourID, label)
+        self._add_edge(self.outEdges, neighbourID, label, from_neighbour=False)
 
     def nextNode(self, label):
         """Returns the first (presumably only) outward neighbour
