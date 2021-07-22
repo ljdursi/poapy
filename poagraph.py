@@ -501,7 +501,7 @@ class POAGraph(object):
         for node in ni():
             line = '    {id:'+str(node.ID)+', label: "'+node.base+'"'
             if node.ID in pathdict and count % 5 == 0:
-                line += ', allowedToMoveX: false, x: ' + str(pathdict[node.ID]) + ', y: 0 , allowedToMoveY: true },'
+                line += ', x: ' + str(pathdict[node.ID]) + ', y: 0 , fixed: { x:true, y:false }},'
             else:
                 line += '},'
             lines.append(line)
@@ -537,7 +537,7 @@ class POAGraph(object):
                   <head>
                     <title>POA Graph Alignment</title>
 
-                    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/3.11.0/vis.min.js"></script>
+                    <script type="text/javascript" src="https://unpkg.com/vis-network@9.0.4/standalone/umd/vis-network.min.js"></script>
                   </head>
 
                   <body>
