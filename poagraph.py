@@ -542,6 +542,8 @@ class POAGraph(object):
 
                   <body>
 
+                  <div id="loadingProgress">0%</div>
+
                   <div id="mynetwork"></div>
 
                   <script type="text/javascript">
@@ -559,9 +561,25 @@ class POAGraph(object):
                   };
                   var options = {
                     width: '100%',
-                    height: '800px'
+                    height: '800px',
+                    physics: {
+                        stabilization: {
+                            updateInterval: 10,
+                        }
+                    }
                   };
                   var network = new vis.Network(container, data, options);
+
+                  network.on("stabilizationProgress", function (params) {
+                    document.getElementById("loadingProgress").innerText = Math.round(params.iterations / params.total * 100) + "%";
+                  });
+                  network.once("stabilizationIterationsDone", function () {
+                      document.getElementById("loadingProgress").innerText = "100%";
+                      setTimeout(function () {
+                        document.getElementById("loadingProgress").style.display = "none";
+                      }, 500);
+                  });
+
                 </script>
 
                 </body>
