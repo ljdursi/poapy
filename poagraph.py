@@ -501,7 +501,7 @@ class POAGraph(object):
         for node in ni():
             line = '    {id:'+str(node.ID)+', label: "'+node.base+'"'
             if node.ID in pathdict and count % 5 == 0:
-                line += ', allowedToMoveX: false, x: ' + str(pathdict[node.ID]) + ', y: 0 , allowedToMoveY: true },'
+                line += ', x: ' + str(pathdict[node.ID]) + ', y: 0 , fixed: { x:true, y:false }},'
             else:
                 line += '},'
             lines.append(line)
@@ -537,10 +537,12 @@ class POAGraph(object):
                   <head>
                     <title>POA Graph Alignment</title>
 
-                    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/3.11.0/vis.min.js"></script>
+                    <script type="text/javascript" src="https://unpkg.com/vis-network@9.0.4/standalone/umd/vis-network.min.js"></script>
                   </head>
 
                   <body>
+
+                  <div id="loadingProgress">0%</div>
 
                   <div id="mynetwork"></div>
 
@@ -559,9 +561,25 @@ class POAGraph(object):
                   };
                   var options = {
                     width: '100%',
-                    height: '800px'
+                    height: '800px',
+                    physics: {
+                        stabilization: {
+                            updateInterval: 10,
+                        }
+                    }
                   };
                   var network = new vis.Network(container, data, options);
+
+                  network.on("stabilizationProgress", function (params) {
+                    document.getElementById("loadingProgress").innerText = Math.round(params.iterations / params.total * 100) + "%";
+                  });
+                  network.once("stabilizationIterationsDone", function () {
+                      document.getElementById("loadingProgress").innerText = "100%";
+                      setTimeout(function () {
+                        document.getElementById("loadingProgress").style.display = "none";
+                      }, 500);
+                  });
+
                 </script>
 
                 </body>
