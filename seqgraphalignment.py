@@ -31,8 +31,12 @@ class SeqGraphAlignment(object):
         self.stringidxs, self.nodeidxs = matches
 
     def alignmentStrings(self):
-        return ("".join([self.sequence[i] if i is not None else "-" for i in self.stringidxs]),
-                "".join([self.graph.nodedict[j].base if j is not None else "-" for j in self.nodeidxs]))
+        return "".join(
+            self.sequence[i] if i is not None else "-" for i in self.stringidxs
+        ), "".join(
+            self.graph.nodedict[j].base if j is not None else "-"
+            for j in self.nodeidxs
+        )
 
     def matchscore(self, c1, c2):
         if c1 == c2:
@@ -41,13 +45,12 @@ class SeqGraphAlignment(object):
             return self._mismatchscore
 
     def matchscoreVec(self, c, v):
-        res = numpy.where(v == c, self._matchscore, self._mismatchscore)
-        return res
+        return numpy.where(v == c, self._matchscore, self._mismatchscore)
 
     def alignStringToGraphSimple(self):
         """Align string to graph, following same approach as smith waterman
         example"""
-        if not type(self.sequence) == str:
+        if type(self.sequence) != str:
             raise TypeError("Invalid Type")
 
         nodeIDtoIndex, nodeIndexToID, scores, backStrIdx, backGrphIdx = self.initializeDynamicProgrammingData()
@@ -149,11 +152,9 @@ class SeqGraphAlignment(object):
     def prevIndices(self, node, nodeIDtoIndex):
         """Return a list of the previous dynamic programming table indices
            corresponding to predecessors of the current node."""
-        prev = []
-        for predID in list(node.inEdges.keys()):
-            prev.append(nodeIDtoIndex[predID])
+        prev = [nodeIDtoIndex[predID] for predID in list(node.inEdges.keys())]
         # if no predecessors, point to just before the graph
-        if len(prev) == 0:
+        if not prev:
             prev = [-1]
         return prev
 
@@ -206,12 +207,12 @@ class SeqGraphAlignment(object):
         if not self.globalAlign:
             besti, bestj = numpy.argwhere(scores == numpy.amax(scores))[-1]
         else:
-            # still have to find best final index to start from
-            terminalIndices = []
             ni = self.graph.nodeiterator()
-            for (index, node) in enumerate(ni()):
-                if node.outDegree == 0:
-                    terminalIndices.append(index)
+            # still have to find best final index to start from
+            terminalIndices = [
+                index for (index, node) in enumerate(ni()) if node.outDegree == 0
+            ]
+
             besti = terminalIndices[0] + 1
             bestscore = scores[besti, bestj]
             for i in terminalIndices[1:]:
@@ -221,7 +222,9 @@ class SeqGraphAlignment(object):
 
         matches = []
         strindexes = []
-        while (self.globalAlign or scores[besti, bestj] > 0) and not(besti == 0 and bestj == 0):
+        while ((self.globalAlign or scores[besti, bestj] > 0)) and (
+            besti != 0 or bestj != 0
+        ):
             nexti, nextj = backGrphIdx[besti, bestj], backStrIdx[besti, bestj]
             curstridx, curnodeidx = bestj-1, nodeIndexToID[besti-1]
 
