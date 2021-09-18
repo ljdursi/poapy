@@ -427,9 +427,10 @@ class POAGraph(object):
                         labelcounts[l] += 1
 
                 for label, seq in zip(self.__labels, self.__seqs):
-                    if label in labelcounts:
-                        if labelcounts[label] >= maxfraction*len(seq):
-                            exclusions.append(label)
+                    if label in labelcounts and labelcounts[
+                        label
+                    ] >= maxfraction * len(seq):
+                        exclusions.append(label)
 
             lastlen = len(path)
             passno += 1
@@ -449,7 +450,7 @@ class POAGraph(object):
         ni = self.nodeiterator()
         for node in ni():
             other_columns = [column_index[other] for other in node.alignedTo if other in column_index]
-            if len(other_columns) > 0:
+            if other_columns:
                 found_idx = min(other_columns)
             else:
                 found_idx = current_column
@@ -490,10 +491,7 @@ class POAGraph(object):
         # get the consensus sequence, which we'll use as the "spine" of the
         # graph
         path, __, __ = self.consensus()
-        pathdict = {}
-        for i, nodeID in enumerate(path):
-            pathdict[nodeID] = i*150
-
+        pathdict = {nodeID: i*150 for i, nodeID in enumerate(path)}
         lines = ['var nodes = [']
 
         ni = self.nodeiterator()
