@@ -86,7 +86,7 @@ class SeqGraphAlignment(object):
         seqvec = numpy.array(list(self.sequence))
 
         nodeIDtoIndex, nodeIndexToID, scores, backStrIdx, backGrphIdx = self.initializeDynamicProgrammingData()
-        inserted = numpy.zeros((l2), dtype=numpy.bool)
+        inserted = numpy.zeros((l2), dtype=bool)
 
         # having the inner loop as a function improves performance
         # can use Cython, etc on this for significant further improvements
