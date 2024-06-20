@@ -1,6 +1,6 @@
 # A Simple Partial Order Alignment implementation
 
-[![Build Status](https://travis-ci.org/ljdursi/poapy.svg?branch=master)](https://travis-ci.org/ljdursi/poapy)
+![Build Status](https://github.com/ljdursi/poapy/actions/workflows/python-package.yml/badge.svg)
 
 This is a simple python implementation of a Partial Order Alignment for MSA,
 based on
