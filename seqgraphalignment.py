@@ -50,7 +50,7 @@ class SeqGraphAlignment(object):
     def alignStringToGraphSimple(self):
         """Align string to graph, following same approach as smith waterman
         example"""
-        if type(self.sequence) != str:
+        if type(self.sequence) is not str:
             raise TypeError("Invalid Type")
 
         nodeIDtoIndex, nodeIndexToID, scores, backStrIdx, backGrphIdx = self.initializeDynamicProgrammingData()
@@ -79,7 +79,7 @@ class SeqGraphAlignment(object):
     def alignStringToGraphFast(self):
         """Align string to graph - using numpy to vectorize across the string
         at each iteration."""
-        if not type(self.sequence) == str:
+        if type(self.sequence) is not str:
             raise TypeError("Invalid Type")
 
         l2 = len(self.sequence)
@@ -111,11 +111,11 @@ class SeqGraphAlignment(object):
 
             # First calculate for the first predecessor, over all string posns:
             deletescore = scores[predecessors[0]+1, 1:] + self._gap
-            bestdelete = numpy.zeros((l2), dtype=numpy.int)+predecessors[0]+1
+            bestdelete = numpy.zeros((l2), dtype=numpy.int32)+predecessors[0]+1
 
             matchpoints = self.matchscoreVec(gbase, seqvec)
             matchscore = scores[predecessors[0]+1, 0:-1] + matchpoints
-            bestmatch = numpy.zeros((l2), dtype=numpy.int)+predecessors[0]+1
+            bestmatch = numpy.zeros((l2), dtype=numpy.int32)+predecessors[0]+1
 
             # then, the remaining
             for predecessor in predecessors[1:]:
@@ -176,7 +176,7 @@ class SeqGraphAlignment(object):
 
         # Dynamic Programming data structures; scores matrix and backtracking
         # matrix
-        scores = numpy.zeros((l1+1, l2+1), dtype=numpy.int)
+        scores = numpy.zeros((l1+1, l2+1), dtype=numpy.int32)
 
         # initialize insertion score
         # if global align, penalty for starting at head != 0
@@ -192,8 +192,8 @@ class SeqGraphAlignment(object):
                 scores[index+1, 0] = best + self._gap
 
         # backtracking matrices
-        backStrIdx = numpy.zeros((l1+1, l2+1), dtype=numpy.int)
-        backGrphIdx = numpy.zeros((l1+1, l2+1), dtype=numpy.int)
+        backStrIdx = numpy.zeros((l1+1, l2+1), dtype=numpy.int32)
+        backGrphIdx = numpy.zeros((l1+1, l2+1), dtype=numpy.int32)
 
         return nodeIDtoIndex, nodeIndexToID, scores, backStrIdx, backGrphIdx
 
