@@ -1,7 +1,6 @@
 """
 Tests for Issue #6, provided by @rlorigro
 """
-import pytest
 import poagraph
 import seqgraphalignment
 

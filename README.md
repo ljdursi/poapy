@@ -1,11 +1,11 @@
 # A Simple Partial Order Alignment implementation
 
-[![Build Status](https://travis-ci.org/ljdursi/poapy.svg?branch=master)](https://travis-ci.org/ljdursi/poapy)
+![Build Status](https://github.com/ljdursi/poapy/actions/workflows/python-package.yml/badge.svg)
 
 This is a simple python implementation of a Partial Order Alignment for MSA,
 based on
 
-[Multiple sequence alignment using partial order graphs](http://bioinformatics.oxfordjournals.org/content/18/3/452.short) (2002) by Lee, Grasso, and Sharlow 
+[Multiple sequence alignment using partial order graphs](http://bioinformatics.oxfordjournals.org/content/18/3/452.short) (2002) by Lee, Grasso, and Sharlow
  and
 [Generating consensus sequences from partial order ...](http://bioinformatics.oxfordjournals.org/content/19/8/999.short) (2003) by Lee
 

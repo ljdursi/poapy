@@ -14,7 +14,7 @@ def readfasta(infile):
     cursequence = ""
 
     def updatelists():
-        if len(cursequence) is not 0:
+        if len(cursequence) != 0:
             sequences.append(cursequence)
             if curlabel is not None:
                 labels.append(curlabel)

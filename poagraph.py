@@ -75,7 +75,7 @@ class Edge(object):
         self.outNodeID = outNodeID
         if label is None:
             self.labels = []
-        elif type(label) == list:
+        elif type(label) is list:
             self.labels = label
         else:
             self.labels = [label]
@@ -180,8 +180,8 @@ class POAGraph(object):
         return self._nedges
 
     def _simplified_graph_rep(self):
-        ## TODO: The need for this suggests that the way the graph is currently represented
-        ## isn't really right and needs some rethinking.
+        # TODO: The need for this suggests that the way the graph is currently represented
+        # isn't really right and needs some rethinking.
 
         node_to_pn = {}
         pn_to_nodes = {}
@@ -217,18 +217,18 @@ class POAGraph(object):
         sortedlist = []
         completed = set([])
 
-        ##
-        ## The topological sort of this graph is complicated by the alignedTo edges;
-        ## we want to nodes connected by such edges to remain near each other in the
-        ## topological sort.
-        ##
-        ## Here we'll create a simple version of the graph that merges nodes that
-        ## are alignedTo each other, performs the sort, and then decomposes the
-        ## 'pseudonodes'.
-        ##
-        ## The need for this suggests that the way the graph is currently represented
-        ## isn't quite right and needs some rethinking.
-        ##
+        #
+        # The topological sort of this graph is complicated by the alignedTo edges;
+        # we want to nodes connected by such edges to remain near each other in the
+        # topological sort.
+        #
+        # Here we'll create a simple version of the graph that merges nodes that
+        # are alignedTo each other, performs the sort, and then decomposes the
+        # 'pseudonodes'.
+        #
+        # The need for this suggests that the way the graph is currently represented
+        # isn't quite right and needs some rethinking.
+        #
 
         pseudonodes = self._simplified_graph_rep()
 
@@ -383,7 +383,7 @@ class POAGraph(object):
 
             for neighbourID in self.nodedict[nodeID].outEdges:
                 e = self.nodedict[nodeID].outEdges[neighbourID]
-                weight = len([l for l in e.labels if l not in excludeLabels])
+                weight = len([label for label in e.labels if label not in excludeLabels])
                 weightScoreEdge = (weight, scores[neighbourID], neighbourID)
 
                 if weightScoreEdge > bestWeightScoreEdge:
@@ -423,8 +423,8 @@ class POAGraph(object):
 
                 labelcounts = collections.defaultdict(int)
                 for ll in labellists:
-                    for l in ll:
-                        labelcounts[l] += 1
+                    for label in ll:
+                        labelcounts[label] += 1
 
                 for label, seq in zip(self.__labels, self.__seqs):
                     if label in labelcounts and labelcounts[
